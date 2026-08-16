@@ -1,0 +1,22 @@
+# SECRETS — never commit.
+.secrets.yaml
+.secrets.yml
+*.secrets.yaml
+.token_cache.json
+*.token_cache.json
+.env
+.env.*
+!.env.example
+config.yaml
+
+# Personal trading state — never commit.
+positions.yaml
+data/
+*.db
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
