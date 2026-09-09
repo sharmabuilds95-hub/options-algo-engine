@@ -7,7 +7,7 @@ This repository is the infrastructure layer — statistical validation, walk-for
 ```bash
 git clone <this-repo> && cd options-algo-engine
 pip install -r requirements.txt
-cd engine && python test_registry.py   # ...and the rest; all 7 suites run offline
+pytest                                 # all 7 suites, offline, no API keys
 ```
 
 ---
@@ -75,19 +75,33 @@ The strategy was specified, implemented, tested against a full year of real mark
 
 ## Test suite
 
-Seven suites, all runnable offline with no market data, no API keys, and no network access:
+Seven check suites, 2,201 lines, all runnable offline with no market data, no API keys, and no network access:
 
-| Suite | Covers |
-|---|---|
-| `engine/test_registry.py` | pre-registration integrity, Bonferroni/BH correction, bootstrap p-values |
-| `engine/test_strategy.py` | Greeks, strike selection, position construction, max-loss, triggers |
-| `engine/test_walk.py` | walk-forward splitting and out-of-sample evaluation |
-| `engine/test_score.py` | gating logic, expectancy, effect-size floor |
-| `engine/test_liquidity.py` | liquidity filters |
-| `engine/test_rules.py` | N3 entry logic |
-| `test_analytics.py` | analytics and reporting |
+```bash
+pytest
+```
 
-Roughly 2,000 lines of tests against the engine.
+That reports 8 passing items: the seven suites, plus one guard that fails if suite discovery ever returns nothing.
+
+| Suite | Checks | Covers |
+|---|---:|---|
+| `engine/test_registry.py` | 155 | pre-registration integrity, Bonferroni/BH correction, bootstrap p-values |
+| `engine/test_score.py` | 87 | gating logic, expectancy, effect-size floor |
+| `engine/test_strategy.py` | 69 | Greeks, strike selection, position construction, max-loss, triggers |
+| `engine/test_walk.py` | 56 | walk-forward splitting and out-of-sample evaluation |
+| `engine/test_liquidity.py` | 40 | liquidity filters |
+| `test_analytics.py` | 33 | analytics and reporting |
+| `engine/test_rules.py` | 25 | N3 entry logic |
+
+465 individual checks in total. The registry suite is the largest because it attacks the write-once store through every route that could rewrite history: UPDATE, DELETE, INSERT OR REPLACE, back-dated results, and the public API. Its correction maths is checked against the worked example in the 1995 Benjamini-Hochberg paper.
+
+Each suite is script-style. It asserts at module level, prints its own tally, and exits non-zero if any check fails. `test_suites.py` runs each one in a subprocess, so `pytest` covers them without the assertions being rewritten, and a failing suite prints its captured output so you can see which check broke. Any suite still runs on its own:
+
+```bash
+python engine/test_registry.py
+```
+
+Every suite keeps its databases in a temp directory, so running the tests never touches `data/registry.db` or `data/market.db`.
 
 ## Stack
 

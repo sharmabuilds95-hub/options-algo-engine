@@ -359,6 +359,11 @@ def benjamini_hochberg_adjusted(p_values: Sequence[float]) -> list[float]:
 @dataclass(frozen=True)
 class TestOutcome:
     """One completed test, reduced to what the correction needs. Pure."""
+
+    # Not a pytest test class. The name refers to a statistical test, and
+    # without this pytest tries to collect it and warns about __init__.
+    __test__ = False
+
     label: str
     p_value: float
     meets_threshold: bool = False
@@ -1049,6 +1054,11 @@ def test_count(con: sqlite3.Connection, family: str | None = None,
     tc.n_param_deviations = sum(1 for r in rows if not r["params_match"])
     tc.n_superseded = sum(1 for p in pres if p.supersedes)
     return tc
+
+
+# Not a pytest test. It counts how many statistical tests have been run, and
+# without this pytest collects it and fails looking for a "con" fixture.
+test_count.__test__ = False
 
 
 def ordinal_of(con: sqlite3.Connection, run_id: str,
